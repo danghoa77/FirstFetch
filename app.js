@@ -25,6 +25,7 @@ submitBtn = document.querySelector('.submitBtn'),
   table = document.querySelector("table"),
   filterData = document.getElementById("search")
 
+  const apiUrl ="https://671836c7b910c6a6e02b5d23.mockapi.io/staff";
 let originalData = localStorage.getItem('userProfile') ? JSON.parse(localStorage.getItem('userProfile')) : []
 let getData = [...originalData]
 
@@ -37,6 +38,25 @@ var startIndex = 1
 var endIndex = 0
 var currentIndex = 1
 var maxIndex = 0
+
+async function fetchUsers() {
+  try {
+      const response = await fetch(apiUrl);
+      const users = await response.json();
+      if (users.length > 0) {
+          originalData = users;
+          localStorage.setItem('userProfile', JSON.stringify(originalData));
+          getData = [...originalData]; 
+          showInfo(); 
+      }
+  } catch (error) {
+      console.error('Error fetching users:', error);
+  }
+}
+fetchUsers();
+document.addEventListener('DOMContentLoaded', () => {
+  fetchUsers(); 
+});
 
 showInfo()
 
@@ -58,7 +78,7 @@ crossBtn.addEventListener('click', ()=>{
 })
 
 uploadimg.onchange = function(){
-    if(uploadimg.files[0].size < 1000000){   // 1MB = 1000000
+    if(uploadimg.files[0].size < 1000000){   
         var fileReader = new FileReader()
 
         fileReader.onload = function(e){
@@ -139,31 +159,29 @@ function highlightIndexBtn(){
 
 function showInfo(){
     document.querySelectorAll(".employeeDetails").forEach(info => info.remove())
-
+    userInfo.innerHTML = ""; 
     var tab_start = startIndex - 1
     var tab_end = endIndex
 
     if(getData.length > 0){
         for(var i=tab_start; i<tab_end; i++){
             var staff = getData[i]
-
-
             if(staff){
-                let createElement = `<tr class = "employeeDetails">
-                <td>${i+1}</td>
-                <td><img src="${staff.picture}" alt="" width="40" height="40"></td>
+                let createElement = `<tr class = "userInfo">
+                <td>${staff.id}</td>
+                <td><img src="${staff.image}" alt="" width="40" height="40"></td>
                 <td>${staff.fName + " " + staff.lName}</td>
-                <td>${staff.ageVal}</td>
-                <td>${staff.cityVal}</td>
-                <td>${staff.positionVal}</td>
-                <td>${staff.salaryVal}</td>
-                <td>${staff.sDateVal}</td>
-                <td>${staff.emailVal}</td>
-                <td>${staff.phoneVal}</td>
+                <td>${staff.age}</td>
+                <td>${staff.city}</td>
+                <td>${staff.position}</td>
+                <td>${staff.salary}</td>
+                <td>${staff.sDate}</td>
+                <td>${staff.email}</td>
+                <td>${staff.phone}</td>
                 <td>
-                    <button onclick="readInfo('${staff.picture}', '${staff.fName}', '${staff.lName}', '${staff.ageVal}', '${staff.cityVal}', '${staff.positionVal}', '${staff.salaryVal}', '${staff.sDateVal}', '${staff.emailVal}', '${staff.phoneVal}')"><i class="fa-regular fa-eye"></i></button>
+                    <button onclick="readInfo('${staff.image}', '${staff.fName}', '${staff.lName}', '${staff.age}', '${staff.city}', '${staff.position}', '${staff.salary}', '${staff.sDate}', '${staff.email}', '${staff.phone}')"><i class="fa-regular fa-eye"></i></button>
 
-                    <button onclick="editInfo('${i}', '${staff.picture}', '${staff.fName}', '${staff.lName}', '${staff.ageVal}', '${staff.cityVal}', '${staff.positionVal}', '${staff.salaryVal}', '${staff.sDateVal}', '${staff.emailVal}', '${staff.phoneVal}')"><i class="fa-regular fa-pen-to-square"></i></button>
+                    <button onclick="editInfo('${staff.id}', '${staff.image}', '${staff.fName}', '${staff.lName}', '${staff.age}', '${staff.city}', '${staff.position}', '${staff.salary}', '${staff.sDate}', '${staff.email}', '${staff.phone}')"><i class="fa-regular fa-pen-to-square"></i></button>
 
 
                     <button onclick = "deleteInfo(${i})"><i class="fa-regular fa-trash-can"></i></button>
@@ -178,7 +196,7 @@ function showInfo(){
 
 
     else{
-        userInfo.innerHTML = `<tr class="employeeDetails"><td class="empty" colspan="11" align="center">No data available in table</td></tr>`
+        userInfo.innerHTML = `<tr class="userInfo"><td class="empty" colspan="11" align="center">No data available in table</td></tr>`
         table.style.minWidth = "1400px"
     }
 }
@@ -210,146 +228,137 @@ function readInfo(pic, fname, lname, Age, City, Position, Salary, SDate, Email, 
     imgHolder.style.pointerEvents = "none"
 }
 
-function editInfo(id, pic, fname, lname, Age, City, Position, Salary, SDate, Email, Phone){
-    isEdit = true
-    editId = id
+function editInfo(id, pic, fname, lname, Age, City, Position, Salary, SDate, Email, Phone) {
+  isEdit = true; 
+  editId = id;   
 
-    // Find the index of the item to edit in the original data based on id
-    const originalIndex = originalData.findIndex(item => item.id === id)
+  imgInput.src = pic
+  fName.value = fname
+  lName.value = lname
+  age.value = Age
+  city.value = City
+  position.value = Position
+  salary.value = Salary
+  sDate.value = SDate
+  email.value = Email
+  phone.value = Phone
+ 
 
-    // Update the original data
-    originalData[originalIndex] = {
-        id: id,
-        picture: pic,
-        fName: fname,
-        lName: lname,
-        ageVal: Age,
-        cityVal: City,
-        positionVal: Position,
-        salaryVal: Salary,
-        sDateVal: SDate,
-        emailVal: Email,
-        phoneVal: Phone
-    }
+ 
+  darkBg.classList.add('active');
+  popupForm.classList.add('active');
+  popupFooter.style.display = "block"; 
+  modalTitle.innerHTML = "Update the Form"; 
+  submitBtn.innerHTML = "Update"; 
 
-    imgInput.src = pic
-    fName.value = fname
-    lName.value = lname
-    age.value = Age
-    city.value = City
-    position.value = Position
-    salary.value = Salary
-    sDate.value = SDate
-    email.value = Email
-    phone.value = Phone
+  
+  formInputFields.forEach(input => {
+      input.disabled = false; 
+  });
 
-
-    darkBg.classList.add('active')
-    popupForm.classList.add('active')
-    popupFooter.style.display = "block"
-    modalTitle.innerHTML = "Update the Form"
-    submitBtn.innerHTML = "Update"
-    formInputFields.forEach(input => {
-        input.disabled = false
-    })
-
-
-    imgHolder.style.pointerEvents = "auto"
+  imgHolder.style.pointerEvents = "auto";
 }
 
-function deleteInfo(index){
-    if(confirm("Aer you sure want to delete?")){
-        originalData.splice(index, 1);
-        localStorage.setItem("userProfile", JSON.stringify(originalData));
+async function deleteInfo(index) {
+  console.log("Delete button clicked");
+  console.log("Original Data Length:", originalData.length); 
+  if (index < 0 || index >= originalData.length) {
+      console.error('Invalid index for deletion');
+      return;
+  }
+
+  if (confirm("Are you sure you want to delete?")) {
+      const userId = originalData[index].id;
+
+      try {
+          await fetch(`https://671836c7b910c6a6e02b5d23.mockapi.io/staff/${userId}`, {
+              method: 'DELETE'
+          });
+
+          originalData.splice(index, 1);
+          localStorage.setItem("userProfile", JSON.stringify(originalData));
+
+          getData = [...originalData];
+          preLoadCalculations();
+
         
-        // Update getData after deleting the record
-        getData = [...originalData];
 
-        preLoadCalculations()
+          showInfo();
+          highlightIndexBtn();
+          displayIndexBtn();
 
-        if(getData.length === 0){
-            currentIndex = 1
-            startIndex = 1
-            endIndex = 0
-        }
-        else if(currentIndex > maxIndex){
-            currentIndex = maxIndex
-        }
-
-        showInfo()
-        highlightIndexBtn()
-        displayIndexBtn()
-
-        var nextBtn = document.querySelector('.next')
-        var prevBtn = document.querySelector('.prev')
-
-        if(Math.floor(maxIndex) > currentIndex){
-            nextBtn.classList.add("act")
-        }
-        else{
-            nextBtn.classList.remove("act")
-        }
-
-
-        if(currentIndex > 1){
-            prevBtn.classList.add('act')
-        }
-    }
+      } catch (error) {
+          console.error('Error deleting user:', error);
+      }
+  }
 }
 
 
-form.addEventListener('submit', (e)=> {
-    e.preventDefault()
+form.addEventListener('submit', async (e)=> {
+  e.preventDefault()
 
-    const information = {
-        id: Date.now(),
-        picture: imgInput.src == undefined ? "./img/pic1.png" :imgInput.src,
-        fName: fName.value,
-        lName: lName.value,
-        ageVal: age.value,
-        cityVal: city.value,
-        positionVal: position.value,
-        salaryVal: salary.value,
-        sDateVal: sDate.value,
-        emailVal: email.value,
-        phoneVal: phone.value
-    }
+  const information = {
+      image: imgInput.src === undefined ? "./img/pic1.png" : imgInput.src,
+      fName: fName.value,
+      lName: lName.value,
+      age: age.value,
+      city: city.value,
+      position: position.value,
+      salary: salary.value,
+      startDate: sDate.value,
+      email: email.value,
+      phone: phone.value
+  }
 
-    if(!isEdit){
-        originalData.unshift(information)
-    }
-    else{
-        originalData[editId] = information
-    }
-    getData = [...originalData]
-    localStorage.setItem('userProfile', JSON.stringify(originalData))
+  if (!isEdit) {
+      try {
+          const response = await fetch('https://671836c7b910c6a6e02b5d23.mockapi.io/staff', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(information)
+          });
 
-    submitBtn.innerHTML = "Submit"
-    modalTitle.innerHTML = "Fill the Form"
+          const newUser = await response.json();
+          originalData.unshift(newUser);
+          localStorage.setItem('userProfile', JSON.stringify(originalData));
 
-    darkBg.classList.remove('active')
-    popupForm.classList.remove('active')
-    form.reset()
+      } catch (error) {
+          console.error('Error creating user:', error);
+      }
+  } else {
+      try {
+          const response = await fetch(`https://671836c7b910c6a6e02b5d23.mockapi.io/staff/${editId}`, {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(information)
+          });
+  
+          const updatedUser = await response.json();
+          originalData = originalData.map(user => user.id === updatedUser.id ? updatedUser : user);
+          localStorage.setItem('userProfile', JSON.stringify(originalData));
+      } catch (error) {
+          console.error('Error updating user:', error);
+      }
+  }
 
+  
+  
+  
+  getData = [...originalData];
+  submitBtn.innerHTML = "Submit";
+  modalTitle.innerHTML = "Fill the Form";
+  darkBg.classList.remove('active');
+  popupForm.classList.remove('active');
+  form.reset();
 
-    highlightIndexBtn()
-    displayIndexBtn()
-    showInfo()
-
-    var nextBtn = document.querySelector(".next")
-    var prevBtn = document.querySelector(".prev")
-    if(Math.floor(maxIndex) > currentIndex){
-        nextBtn.classList.add("act")
-    }
-    else{
-        nextBtn.classList.remove("act")
-    }
-
-
-    if(currentIndex > 1){
-        prevBtn.classList.add("act")
-    }
-})
+  highlightIndexBtn();
+  displayIndexBtn();
+  showInfo();
+});
 
 
 function next(){
